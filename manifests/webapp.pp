@@ -35,7 +35,7 @@ exec {'bundle install':
 }
 
 exec {'generate secret':
-    command => "printf 'Blog::Application.config.secret_token = \"%s\"\n' `bundle exec rake secret` >config/initializers/secret_token.rb",
+    command => "printf 'Blog::Application.config.secret_token = \"%s\"\n' `bundle exec rake secret` >$RAILS_DIR/config/initializers/secret_token.rb",
     cwd     => "$RAILS_DIR",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
     require => Exec['bundle install'],
