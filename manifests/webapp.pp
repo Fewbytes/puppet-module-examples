@@ -57,17 +57,20 @@ exec {'rake tasks':
     require => Exec['fix new-style hashes'],
 }
 
+#This doesn't work well, I should move it to upstart - https://github.com/edrex/puppet-upstart
 exec {'launch unicorn':
-    command => "pgrep -f unicorn || unicorn_rails -D -E production",
+    command => "pgrep -f unicorn -P 1 || unicorn_rails -D -E production",
     cwd     => "$RAILS_DIR",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
     require => Exec['rake tasks', 'generate secret'],
 }
 
-apache::vhost { 'default':
-  enable => false,
+exec {'disable default vhost':
+    command => "/usr/sbin/a2dissite default",
+    require => Package['apache']
 }
 
 apache::vhost { 'webapp':
   template => 'webapp/webapp.erb',
+  require => Exec['rake tasks', 'generate secret', 'disable default vhost'],
 }
