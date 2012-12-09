@@ -32,15 +32,15 @@ exec {'fetch webapp':
 exec {'bundle install':
     cwd     => "$RAILS_DIR",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
-    require => Exec['fix gem dates'],
+    require => Exec['fix gem dates', 'fetch webapp'],
 }
 
 exec {'generate secret':
-    command => "printf 'Blog::Application.config.secret_token = \"%s\"\n' `bundle exec rake secret` >$RAILS_DIR/config/initializers/secret_token.rb",
+    command => "printf 'Blog::Application.config.secret_token = \"%s\"\n' `bundle exec rake secret` >$RAILS_DIR/config/initializers/the_secret_token.rb",
     cwd     => "$RAILS_DIR",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
     require => Exec['bundle install'],
-    creates => "$RAILS_DIR/config/initializers/secret_token.rb",
+    creates => "$RAILS_DIR/config/initializers/the_secret_token.rb",
 }
 
 exec {'fix new-style hashes': #only needed because we want to also support ruby 1.8
