@@ -5,7 +5,8 @@ package {["rubygems", "ruby-dev", "libxml2-dev", "libxslt-dev", "libsqlite3-dev"
 package {"nodejs":} #used for its js runtime engine
 
 exec {'fix gem dates':
-    command => "/bin/sed -i 's/ 00:00:00.000000000Z//g' /var/lib/gems/1.8/specifications/*",
+    command => "sed -i 's/ 00:00:00.000000000Z//g' /var/lib/gems/1.8/specifications/*",
+    path    => "/usr/bin/:/usr/local/bin/:/bin/",
     require => Package['rubygems'],
 }
 
@@ -43,7 +44,9 @@ exec {'generate secret':
 }
 
 exec {'fix new-style hashes': #only needed because we want to also support ruby 1.8
-    command => "/bin/sed -i 's/key:/:key =>/g' $RAILS_DIR/config/initializers/session_store.rb; /bin/sed -i 's/format:/:format =>/g' $RAILS_DIR/config/initializers/wrap_parameters.rb",
+    command => "sed -i 's/key:/:key =>/g' $RAILS_DIR/config/initializers/session_store.rb; sed -i 's/format:/:format =>/g' $RAILS_DIR/config/initializers/wrap_parameters.rb",
+    cwd     => "$RAILS_DIR",
+    path    => "/usr/bin/:/usr/local/bin/:/bin/",
     require => Exec['bundle install'],
 }
 
@@ -68,4 +71,3 @@ apache::vhost { 'default':
 apache::vhost { 'webapp':
   template => 'webapp/webapp.erb',
 }
-
