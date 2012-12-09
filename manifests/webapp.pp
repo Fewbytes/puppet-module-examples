@@ -9,7 +9,7 @@ exec {'fix gem dates':
     require => Package['rubygems'],
 }
 
-package { ["rails", "unicorn", "execjs", "nodejs"]:
+package { ["rails", "unicorn", "execjs"]:
     ensure => present,
     provider => gem,
 }
