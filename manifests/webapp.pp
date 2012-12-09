@@ -42,11 +42,16 @@ exec {'generate secret':
     creates => "$RAILS_DIR/config/initializers/secret_token.rb",
 }
 
+exec {'fix new-style hashes': #only needed because we want to also support ruby 1.8
+    command => "/bin/sed -i 's/key:/:key =>/g' $RAILS_DIR/config/initializers/session_store.rb; /bin/sed -i 's/format:/:format =>/g' $RAILS_DIR/config/initializers/wrap_parameters.rb",
+    require => Exec['bundle install'],
+}
+
 exec {'rake tasks':
     command => "bundle exec rake db:migrate RAILS_ENV=production && bundle exec rake assets:precompile",
     cwd     => "$RAILS_DIR",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
-    require => Exec['bundle install'],
+    require => Exec['fix new-style hashes'],
 }
 
 exec {'launch unicorn':
@@ -54,6 +59,10 @@ exec {'launch unicorn':
     cwd     => "$RAILS_DIR",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
     require => Exec['rake tasks', 'generate secret'],
+}
+
+apache::vhost { 'default':
+  enable => false,
 }
 
 apache::vhost { 'webapp':
