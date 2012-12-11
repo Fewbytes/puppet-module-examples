@@ -1,0 +1,6 @@
+name 'database'
+version '0.0.1'
+license 'Apache 2.0'
+summary 'database module'
+description 'database module'
+dependency 'puppetlabs-mysql', '>= 0.5.0'
