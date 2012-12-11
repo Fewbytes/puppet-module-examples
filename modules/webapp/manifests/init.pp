@@ -1,3 +1,3 @@
-class webapp (
+class webapp (){
 #nothing here on purpose
 }

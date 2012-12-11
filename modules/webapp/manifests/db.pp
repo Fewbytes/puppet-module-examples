@@ -8,7 +8,7 @@ class webapp::db (
   $password,
   $host = '%'
 ) {
-  mysql::db { $name:
+  mysql::db { 'webapp':
     user => $user,
     password => $password,
     host => $host,
