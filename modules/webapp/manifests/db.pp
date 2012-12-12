@@ -6,12 +6,35 @@
 class webapp::db (
   $user,
   $password,
-  $host = '%'
+  $host = '%',
+  $db_name = 'webapp'
 ) {
-  mysql::db { 'webapp':
+  mysql::db { $db_name:
     user => $user,
     password => $password,
     host => $host,
     grant => ["all"]
+  }
+
+  #register attributes in cloudify
+  cloudify_attribute { 'user':
+    value => $user,
+    type => 'service',
+    ensure  => present,
+  }
+  cloudify_attribute { 'password':
+    value => $password,
+    type => 'service',
+    ensure  => present,
+  }
+  cloudify_attribute { 'db_name':
+    value => $db_name,
+    type => 'service',
+    ensure  => present,
+  }
+  cloudify_attribute { 'ip': #note: this gives the internal ip. Perhaps it'd be better to just pull it from the context?
+    value => $ipaddress,
+    type => 'service',
+    ensure  => present,
   }
 }
