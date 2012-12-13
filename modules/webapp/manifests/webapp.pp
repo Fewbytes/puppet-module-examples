@@ -51,12 +51,12 @@ exec {'fix new-style hashes': #only needed because we want to also support ruby 
 }
 
 #use the mysql service for the production db
-db_user = get_cloudify_attribute('user', 'service', 'hello-puppet', 'mysql')
-db_password = get_cloudify_attribute('password', 'service', 'hello-puppet', 'mysql')
-db_name = get_cloudify_attribute('db_name', 'service', 'hello-puppet', 'mysql')
-db_ip = get_cloudify_attribute('ip', 'service', 'hello-puppet', 'mysql')
+$db_user = get_cloudify_attribute('user', 'service', 'hello-puppet', 'mysql')
+$db_password = get_cloudify_attribute('password', 'service', 'hello-puppet', 'mysql')
+$db_name = get_cloudify_attribute('db_name', 'service', 'hello-puppet', 'mysql')
+$db_ip = get_cloudify_attribute('ip', 'service', 'hello-puppet', 'mysql')
 file{ '$RAILS_DIR/config/database.yml':
-    content => template('mysql/database.yml.erb'),
+    content => template('webapp/database.yml.erb'),
     require => Exec['bundle install'],
 }
 

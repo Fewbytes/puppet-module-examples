@@ -40,7 +40,7 @@ class webapp::db (
     ensure  => present,
   }
   cloudify_attribute { 'db_name':
-    value => $db_name,
+    value => $db,
     type => 'service',
     ensure  => present,
   }
