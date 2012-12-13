@@ -11,12 +11,13 @@ class webapp::db (
 ) {
   mysql::db { $db:
   }
-  mysql::grant { "grant remote"
+  mysql::grant { "grant remote":
     user => $user,
+    password => $password,
     db => 'webapp',
     host => '%',
   }
-  mysql::grant { "grant local"
+  mysql::grant { "grant local":
     user => $user,
     password => $password,
     db => 'webapp',
