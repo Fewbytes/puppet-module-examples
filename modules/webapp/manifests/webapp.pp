@@ -1,4 +1,4 @@
-$WEBAPP_PATH='/opt/webapps/rails'
+$WEBAPP_PATH="/opt/webapps/rails"
 $RAILS_DIR="$WEBAPP_PATH/guides/code/getting_started"
 
 package {["rubygems", "ruby-dev", "libxml2-dev", "libxslt-dev", "libsqlite3-dev"]: }
@@ -55,7 +55,7 @@ $db_user = get_cloudify_attribute('user', 'service', 'hello-puppet', 'mysql')
 $db_password = get_cloudify_attribute('password', 'service', 'hello-puppet', 'mysql')
 $db_name = get_cloudify_attribute('db_name', 'service', 'hello-puppet', 'mysql')
 $db_ip = get_cloudify_attribute('ip', 'service', 'hello-puppet', 'mysql')
-file{ '$RAILS_DIR/config/database.yml':
+file{ "$RAILS_DIR/config/database.yml":
     content => template('webapp/database.yml.erb'),
     require => Exec['bundle install'],
 }
@@ -64,8 +64,7 @@ exec {'rake tasks':
     command => "bundle exec rake db:migrate RAILS_ENV=production && bundle exec rake assets:precompile",
     cwd     => "$RAILS_DIR",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
-    require => Exec['fix new-style hashes'],
-    require => File['$RAILS_DIR/config/database.yml'],
+    require => [Exec['fix new-style hashes'], File["$RAILS_DIR/config/database.yml"]],
 }
 
 #This doesn't work well, I should move it to upstart - https://github.com/edrex/puppet-upstart
