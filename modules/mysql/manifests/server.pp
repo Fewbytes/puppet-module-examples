@@ -1,9 +1,6 @@
 class mysql::server {
 
-  package {"mysql-server":
-    name => 'MySQL-server',
-    ensure => installed
-  }
+  package {"mysql-server": }
 
   service {"mysql":
     enable => true,

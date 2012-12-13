@@ -50,6 +50,12 @@ exec {'fix new-style hashes': #only needed because we want to also support ruby 
     require => Exec['bundle install'],
 }
 
+#template #use the mysql service from the attributes
+#get_cloudify_attribute('user', 'service', 'hello-puppet', 'mysql')
+#get_cloudify_attribute('password', 'service', 'hello-puppet', 'mysql')
+#get_cloudify_attribute('db_name', 'service', 'hello-puppet', 'mysql')
+#get_cloudify_attribute('ip', 'service', 'hello-puppet', 'mysql')
+
 exec {'rake tasks':
     command => "bundle exec rake db:migrate RAILS_ENV=production && bundle exec rake assets:precompile",
     cwd     => "$RAILS_DIR",

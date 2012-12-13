@@ -13,7 +13,17 @@ class webapp::db (
   }
   mysql::grant { $user:
     password => $password,
-    db => 'webapp'
+    db => 'webapp',
+    host => '%',
+  }
+  mysql::grant { $user:
+    password => $password,
+    db => 'webapp',
+    host => 'localhost',
+  }
+  class { 'mysql::config':
+    bind_address => '0.0.0.0',
+    require => Class['mysql::server'],
   }
 
   #register attributes in cloudify
