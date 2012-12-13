@@ -7,13 +7,13 @@ class webapp::db (
   $user,
   $password,
   $host = '%',
-  $db_name = 'webapp'
+  $db = 'webapp'
 ) {
-  mysql::db { $db_name:
-    user => $user,
+  mysql::db { $db:
+  }
+  mysql::grant { $user:
     password => $password,
-    host => $host,
-    grant => ["all"]
+    db => 'webapp'
   }
 
   #register attributes in cloudify
