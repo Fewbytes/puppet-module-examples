@@ -10,7 +10,7 @@ exec {'fix gem dates':
     require => Package['rubygems'],
 }
 
-package { ["rails", "unicorn", "execjs"]:
+package { ["rails", "unicorn", "execjs", "mysql2"]:
     ensure => present,
     provider => gem,
 }
@@ -50,17 +50,22 @@ exec {'fix new-style hashes': #only needed because we want to also support ruby 
     require => Exec['bundle install'],
 }
 
-#template #use the mysql service from the attributes
-#get_cloudify_attribute('user', 'service', 'hello-puppet', 'mysql')
-#get_cloudify_attribute('password', 'service', 'hello-puppet', 'mysql')
-#get_cloudify_attribute('db_name', 'service', 'hello-puppet', 'mysql')
-#get_cloudify_attribute('ip', 'service', 'hello-puppet', 'mysql')
+#use the mysql service for the production db
+db_user = get_cloudify_attribute('user', 'service', 'hello-puppet', 'mysql')
+db_password = get_cloudify_attribute('password', 'service', 'hello-puppet', 'mysql')
+db_name = get_cloudify_attribute('db_name', 'service', 'hello-puppet', 'mysql')
+db_ip = get_cloudify_attribute('ip', 'service', 'hello-puppet', 'mysql')
+file{ '$RAILS_DIR/config/database.yml':
+    content => template('mysql/database.yml.erb'),
+    require => Exec['bundle install'],
+}
 
 exec {'rake tasks':
     command => "bundle exec rake db:migrate RAILS_ENV=production && bundle exec rake assets:precompile",
     cwd     => "$RAILS_DIR",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
     require => Exec['fix new-style hashes'],
+    require => File['$RAILS_DIR/config/database.yml'],
 }
 
 #This doesn't work well, I should move it to upstart - https://github.com/edrex/puppet-upstart
