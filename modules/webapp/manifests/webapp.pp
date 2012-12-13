@@ -1,7 +1,7 @@
 $WEBAPP_PATH="/opt/webapps/rails"
 $RAILS_DIR="$WEBAPP_PATH/guides/code/getting_started"
 
-package {["rubygems", "ruby-dev", "libxml2-dev", "libxslt-dev", "libsqlite3-dev"]: }
+package {["rubygems", "ruby-dev", "libxml2-dev", "libxslt-dev", "libsqlite3-dev", "libmysqlclient-dev"]: }
 package {"nodejs":} #used for its js runtime engine
 
 exec {'fix gem dates':
@@ -10,7 +10,7 @@ exec {'fix gem dates':
     require => Package['rubygems'],
 }
 
-package { ["rails", "unicorn", "execjs", "mysql2"]:
+package { ["rails", "unicorn", "execjs", "mysql2", "activerecord-mysql2-adapter"]:
     ensure => present,
     provider => gem,
 }
