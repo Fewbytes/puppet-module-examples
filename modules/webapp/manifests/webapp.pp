@@ -30,7 +30,7 @@ exec {'fetch webapp':
 }
 
 exec { "add mysql gems":
-  command => "printf \"gem 'mysql2'\ngem 'activerecord-mysql2-adapter'\n\" >>$RAILS_DIR/Gemfile",
+  command => "echo \"gem 'mysql2'\" >>$RAILS_DIR/Gemfile",
   unless  => "grep 'mysql2' $RAILS_DIR/Gemfile",
   path    => "/usr/bin/:/usr/local/bin/:/bin/",
   require => Exec['fetch webapp']
