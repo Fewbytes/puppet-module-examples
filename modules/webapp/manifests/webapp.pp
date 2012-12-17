@@ -1,7 +1,8 @@
 $WEBAPP_REPO="https://github.com/redmine/redmine.git" #TODO: set from cloudify
+$WEBAPP_TAG="1.4.5"
 $WEBAPP_PATH="/opt/webapps/rails"
 
-package {["rubygems", "ruby-dev", "libxml2-dev", "libxslt-dev", "libsqlite3-dev", "libmysqlclient-dev"]: }
+package {["rubygems", "ruby-dev", "libxml2-dev", "libxslt-dev", "libsqlite3-dev", "libmysqlclient-dev", "libpgsql-ruby", "libmagickwand-dev", "imagemagick", "librmagick-ruby"]: }
 package {"nodejs":} #used for its js runtime engine
 
 exec {'fix gem dates':
@@ -22,18 +23,25 @@ file { '/opt/webapps':
     ensure => "directory",
 }
 
-exec {'fetch webapp':
+exec {'fetch webapp repo':
     command => "git clone $WEBAPP_REPO $WEBAPP_PATH",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
     creates => "$WEBAPP_PATH",
     require => File['/opt/webapps'],
 }
 
+exec {'fetch webapp tag':
+    command => "git checkout $WEBAPP_TAG",
+    path    => "/usr/bin/:/usr/local/bin/:/bin/",
+    cwd     => "$WEBAPP_PATH",
+    require => Exec['fetch webapp repo'],
+}
+
 exec { "add mysql gems":
   command => "echo \"gem 'mysql2'\" >>$WEBAPP_PATH/Gemfile",
   unless  => "grep 'mysql2' $WEBAPP_PATH/Gemfile",
   path    => "/usr/bin/:/usr/local/bin/:/bin/",
-  require => Exec['fetch webapp']
+  require => Exec['fetch webapp tag']
 }
 
 exec {'bundle install':
@@ -42,16 +50,17 @@ exec {'bundle install':
     require => Exec['fix gem dates', "add mysql gems"]
 }
 
-exec {'generate secret':
-    command => "printf 'Blog::Application.config.secret_token = \"%s\"\n' `bundle exec rake secret` >$WEBAPP_PATH/config/initializers/the_secret_token.rb",
-    cwd     => "$WEBAPP_PATH",
-    path    => "/usr/bin/:/usr/local/bin/:/bin/",
-    require => Exec['bundle install'],
-    creates => "$WEBAPP_PATH/config/initializers/the_secret_token.rb",
-}
+#a fix for: A key is required to write a cookie containing the session data. Use config.action_controller.session = { :key => "_myapp_session", :secret => "some secret phrase" } in config/environment.rb
+#exec {'generate secret':
+#    command => "printf 'config.action_controller.session = { :key => \"_myapp_session\", :secret => \"%s\" }\n' `bundle exec rake secret` >$WEBAPP_PATH/config/initializers/the_secret_token.rb",
+#    cwd     => "$WEBAPP_PATH",
+#    path    => "/usr/bin/:/usr/local/bin/:/bin/",
+#    require => Exec['bundle install'],
+#    creates => "$WEBAPP_PATH/config/initializers/the_secret_token.rb",
+#}
 
-exec {'fix new-style hashes': #only needed because we want to also support ruby 1.8
-    command => "sed -i 's/key:/:key =>/g' $WEBAPP_PATH/config/initializers/session_store.rb; sed -i 's/format:/:format =>/g' $WEBAPP_PATH/config/initializers/wrap_parameters.rb",
+exec {'generate secret':
+    command => "rake generate_session_store",
     cwd     => "$WEBAPP_PATH",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
     require => Exec['bundle install'],
@@ -71,7 +80,7 @@ exec {'rake tasks':
     command => "bundle exec rake db:migrate RAILS_ENV=production && bundle exec rake assets:precompile",
     cwd     => "$WEBAPP_PATH",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
-    require => [Exec['fix new-style hashes'], File["$WEBAPP_PATH/config/database.yml"]],
+    require => File["$WEBAPP_PATH/config/database.yml"],
 }
 
 #This doesn't work well, I should move it to upstart - https://github.com/edrex/puppet-upstart
