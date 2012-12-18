@@ -44,7 +44,8 @@ exec { "add mysql gems":
     require => Exec['fetch webapp tag']
 }
 
-exec {'bundle install --without development test rmagick postgresql':
+exec {"bundle install":
+    command => "bundle install --without development test rmagick postgresql",
     cwd     => "$WEBAPP_PATH",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
     require => Exec['fix gem dates', "add mysql gems"]
@@ -77,7 +78,7 @@ file{ "$WEBAPP_PATH/config/database.yml":
 }
 
 exec {'rake tasks':
-    command => "bundle exec rake db:migrate RAILS_ENV=production",
+    command => "bundle exec rake db:migrate RAILS_ENV=production && bundle exec rake redmine:load_default_data RAILS_ENV=production REDMINE_LANG=en",
     cwd     => "$WEBAPP_PATH",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
     require => File["$WEBAPP_PATH/config/database.yml"],
