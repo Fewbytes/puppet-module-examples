@@ -1,5 +1,7 @@
-$WEBAPP_REPO="https://github.com/redmine/redmine.git" #TODO: set from cloudify
-$WEBAPP_TAG="1.4.5" #TODO: set from cloudify
+#Deploys a rail webapp as defined in facts loaded from (service-scope) cloudify attributes:
+#   $service_webapp_repo - the git repo to clone
+#   $service_webapp_tag  - the tag to checkout
+
 $WEBAPP_PATH="/opt/webapps/rails"
 
 package {["rubygems", "ruby-dev", "libxml2-dev", "libxslt-dev", "libsqlite3-dev", "libmysqlclient-dev"]: }
@@ -17,14 +19,14 @@ file { '/opt/webapps':
 }
 
 exec {'fetch webapp repo':
-    command => "git clone $WEBAPP_REPO $WEBAPP_PATH",
+    command => "git clone $service_webapp_repo $WEBAPP_PATH",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
     creates => "$WEBAPP_PATH",
     require => File['/opt/webapps'],
 }
 
 exec {'fetch webapp tag':
-    command => "git checkout $WEBAPP_TAG",
+    command => "git checkout $service_webapp_tag",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
     cwd     => "$WEBAPP_PATH",
     require => Exec['fetch webapp repo'],
