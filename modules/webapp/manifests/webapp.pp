@@ -33,7 +33,7 @@ exec {'fetch webapp tag':
     require => Exec['fetch webapp repo'],
 }
 
-#set up unicorn
+#install unicorn
 file { 'Gemfile.local':
     path => "$WEBAPP_PATH/Gemfile.local",
     content => "gem 'unicorn'\n",
@@ -71,19 +71,29 @@ exec {'rake tasks':
     require => [File["$WEBAPP_PATH/config/database.yml"], Exec['generate secret']],
 }
 
-#TODO: move unicorn to run under upstart (e.g. https://github.com/edrex/puppet-upstart)
-# under a non-root user and give it file system permissions
-#mkdir tmp tmp/pdf public/plugin_assets
-#chown -R redmine:redmine files log tmp public/plugin_assets
-#chmod -R 755 files log tmp public/plugin_assets
+#set up unicorn
+user { "rails":
+    ensure => present,
+    comment => "rails",
+    membership => minimum,
+    shell => "/bin/sh",
+    home => "$WEBAPP_PATH",
+    require => Exec['fetch webapp repo'],
+}
 
-exec {'launch unicorn':
-    command => "pgrep -f unicorn -P 1 || bundle exec unicorn_rails -D -E production",
-    cwd     => "$WEBAPP_PATH",
-    path    => "/usr/bin/:/usr/local/bin/:/bin/",
+file { ["$WEBAPP_PATH/files", "$WEBAPP_PATH/log", "$WEBAPP_PATH/tmp", "$WEBAPP_PATH/public"]:
+    owner   => "rails",
+    mode    => "0755",
+    require => User["rails"],
+}
+
+upstart::job {"unicorn":
+    description => "unicorn app server",
+    command     => "start-stop-daemon --start -c rails -d $WEBAPP_PATH --exec /usr/local/bin/bundle -- exec unicorn_rails -E production",
     require => [Exec['rake tasks', 'generate secret'], File['Gemfile.local']],
 }
 
+#set up apache
 exec {'disable default vhost':
     command => "/usr/sbin/a2dissite default",
     require => Package['apache']

@@ -1,0 +1,1 @@
+Adapted from Eric Drechsel's https://github.com/edrex/puppet-upstart
