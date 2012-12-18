@@ -2,7 +2,7 @@ $WEBAPP_REPO="https://github.com/redmine/redmine.git" #TODO: set from cloudify
 $WEBAPP_TAG="1.4.5"
 $WEBAPP_PATH="/opt/webapps/rails"
 
-package {["rubygems", "ruby-dev", "libxml2-dev", "libxslt-dev", "libsqlite3-dev", "libmysqlclient-dev", "libpgsql-ruby", "libmagickwand-dev", "imagemagick", "librmagick-ruby"]: }
+package {["rubygems", "ruby-dev", "libxml2-dev", "libxslt-dev", "libsqlite3-dev", "libmysqlclient-dev"]: }
 package {"nodejs":} #used for its js runtime engine
 
 exec {'fix gem dates':
@@ -44,7 +44,7 @@ exec { "add mysql gems":
   require => Exec['fetch webapp tag']
 }
 
-exec {'bundle install':
+exec {'bundle install --without development test rmagick postgresql':
     cwd     => "$WEBAPP_PATH",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
     require => Exec['fix gem dates', "add mysql gems"]
@@ -77,7 +77,7 @@ file{ "$WEBAPP_PATH/config/database.yml":
 }
 
 exec {'rake tasks':
-    command => "bundle exec rake db:migrate RAILS_ENV=production && bundle exec rake assets:precompile",
+    command => "bundle exec rake db:migrate RAILS_ENV=production",
     cwd     => "$WEBAPP_PATH",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
     require => File["$WEBAPP_PATH/config/database.yml"],
