@@ -3,6 +3,7 @@
 #   $service_webapp_tag  - the tag to checkout
 
 $WEBAPP_PATH="/opt/webapps/rails"
+notify{"Beginning deploy of $service_webapp_repo version $service_webapp_tag into $WEBAPP_PATH":}
 
 package {["rubygems", "ruby-dev", "libxml2-dev", "libxslt-dev", "libsqlite3-dev", "libmysqlclient-dev"]: }
 
