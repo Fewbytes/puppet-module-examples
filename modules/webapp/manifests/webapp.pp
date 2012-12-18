@@ -4,6 +4,11 @@ $WEBAPP_PATH="/opt/webapps/rails"
 
 package {["rubygems", "ruby-dev", "libxml2-dev", "libxslt-dev", "libsqlite3-dev", "libmysqlclient-dev"]: }
 
+package {"bundler":
+    provider => gem,
+    require => Package["rubygems"],
+}
+
 class {'apache': }
 apache::module { 'proxy_http': }
 
@@ -29,26 +34,18 @@ exec {'fetch webapp tag':
 file { 'Gemfile.local':
     path => "$WEBAPP_PATH/Gemfile.local",
     content => "gem 'unicorn'\n",
+    require => Exec['fetch webapp tag'],
 }
 
 exec {"bundle install":
     command => "bundle install --without development test rmagick postgresql",
     cwd     => "$WEBAPP_PATH",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
-    require => [Exec['fetch webapp tag'], File['Gemfile.local']],
+    require => [File['Gemfile.local'], Package["bundler"]],
 }
 
-#a fix for: A key is required to write a cookie containing the session data. Use config.action_controller.session = { :key => "_myapp_session", :secret => "some secret phrase" } in config/environment.rb
-#exec {'generate secret':
-#    command => "printf 'config.action_controller.session = { :key => \"_myapp_session\", :secret => \"%s\" }\n' `bundle exec rake secret` >$WEBAPP_PATH/config/initializers/the_secret_token.rb",
-#    cwd     => "$WEBAPP_PATH",
-#    path    => "/usr/bin/:/usr/local/bin/:/bin/",
-#    require => Exec['bundle install'],
-#    creates => "$WEBAPP_PATH/config/initializers/the_secret_token.rb",
-#}
-
 exec {'generate secret':
-    command => "rake generate_session_store",
+    command => "bundle exec rake generate_session_store",
     cwd     => "$WEBAPP_PATH",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
     require => Exec['bundle install'],
@@ -68,7 +65,7 @@ exec {'rake tasks':
     command => "bundle exec rake db:migrate RAILS_ENV=production && bundle exec rake redmine:load_default_data RAILS_ENV=production REDMINE_LANG=en",
     cwd     => "$WEBAPP_PATH",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
-    require => File["$WEBAPP_PATH/config/database.yml"],
+    require => [File["$WEBAPP_PATH/config/database.yml"], Exec['generate secret']],
 }
 
 #TODO: create a redmine user and give it file system permissions?
@@ -78,7 +75,7 @@ exec {'rake tasks':
 
 #This doesn't work well, I should move it to upstart - https://github.com/edrex/puppet-upstart
 exec {'launch unicorn':
-    command => "pgrep -f unicorn -P 1 || unicorn_rails -D -E production",
+    command => "pgrep -f unicorn -P 1 || bundle exec unicorn_rails -D -E production",
     cwd     => "$WEBAPP_PATH",
     path    => "/usr/bin/:/usr/local/bin/:/bin/",
     require => [Exec['rake tasks', 'generate secret'], File['Gemfile.local']],
