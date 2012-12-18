@@ -71,12 +71,12 @@ exec {'rake tasks':
     require => [File["$WEBAPP_PATH/config/database.yml"], Exec['generate secret']],
 }
 
-#TODO: create a redmine user and give it file system permissions?
+#TODO: move unicorn to run under upstart (e.g. https://github.com/edrex/puppet-upstart)
+# under a non-root user and give it file system permissions
 #mkdir tmp tmp/pdf public/plugin_assets
 #chown -R redmine:redmine files log tmp public/plugin_assets
 #chmod -R 755 files log tmp public/plugin_assets
 
-#This doesn't work well, I should move it to upstart - https://github.com/edrex/puppet-upstart
 exec {'launch unicorn':
     command => "pgrep -f unicorn -P 1 || bundle exec unicorn_rails -D -E production",
     cwd     => "$WEBAPP_PATH",
