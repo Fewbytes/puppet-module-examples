@@ -38,10 +38,10 @@ exec {'fetch webapp tag':
 }
 
 exec { "add mysql gems":
-  command => "echo \"gem 'mysql2'\" >>$WEBAPP_PATH/Gemfile",
-  unless  => "grep 'mysql2' $WEBAPP_PATH/Gemfile",
-  path    => "/usr/bin/:/usr/local/bin/:/bin/",
-  require => Exec['fetch webapp tag']
+    command => "echo \"gem 'mysql2'\" >>$WEBAPP_PATH/Gemfile",
+    unless  => "grep 'mysql2' $WEBAPP_PATH/Gemfile",
+    path    => "/usr/bin/:/usr/local/bin/:/bin/",
+    require => Exec['fetch webapp tag']
 }
 
 exec {'bundle install --without development test rmagick postgresql':
