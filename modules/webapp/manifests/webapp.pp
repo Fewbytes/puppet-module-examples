@@ -55,10 +55,10 @@ exec {'generate secret':
 }
 
 #use the mysql service for the production db
-$db_user = get_cloudify_attribute('user', 'service', 'redmine-puppet', 'mysql')
-$db_password = get_cloudify_attribute('password', 'service', 'redmine-puppet', 'mysql')
-$db_name = get_cloudify_attribute('db_name', 'service', 'redmine-puppet', 'mysql')
-$db_ip = get_cloudify_attribute('ip', 'service', 'redmine-puppet', 'mysql')
+$db_user = get_cloudify_attribute('user', 'service', 'redmine_puppet', 'mysql')
+$db_password = get_cloudify_attribute('password', 'service', 'redmine_puppet', 'mysql')
+$db_name = get_cloudify_attribute('db_name', 'service', 'redmine_puppet', 'mysql')
+$db_ip = get_cloudify_attribute('ip', 'service', 'redmine_puppet', 'mysql')
 file{ "$WEBAPP_PATH/config/database.yml":
     content => template('webapp/database.yml.erb'),
     require => Exec['bundle install'],
